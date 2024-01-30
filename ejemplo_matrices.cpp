@@ -5,13 +5,25 @@
  
 #define MATRIX_DIMENSION 25
  
-void matrix_mult(double *A, double *B, double *C, int rows, int cols){
-    for (int i =0; i<rows; i++){
+void matrix_mult(double *A, double *b, double *c, int fila, int cols){
+    for (int i =0; i<fila; i++){
         double tmp= 0;
         for(int j =0; j<cols; j++){
-            tmp = tmp +A[i*cols+j]*B[j];
+            tmp = tmp + A[i*cols + j] * b[j];
         }
-        C[i]=tmp;
+        c[i]=tmp;
+    }
+}
+
+void matrix_mult(double *A, double *B, double *C, int fila_A, int cols_A, int fila_b,  int cols_b) {
+    for (int i = 0; i < fila_A; i++) {
+        for (int j = 0; j < cols_b; j++) {
+            double tmp = 0;
+            for (int k = 0; k < cols_A; k++) {
+                tmp += A[i * cols_A + k] * B[j * fila_b + k];
+            }
+            C[i * cols_b + j] = tmp;
+        }
     }
 }
  
@@ -22,20 +34,24 @@ int main(int argc, char** argv){
  
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
- 
+
+
+    //Datos generales
     int rows_per_rank;
     int rows_alloc = MATRIX_DIMENSION;
     int padding = 0;
  
-    //RELLENAR LAS FILAS PARA MANDAR DEL MISMO TAMAÑO A TODOS LOS RANKS
+
+    //Rellenar los datos
     if(MATRIX_DIMENSION%nprocs != 0){
-        rows_alloc = std::ceil((double)MATRIX_DIMENSION/nprocs) * nprocs;
+        rows_alloc = std::ceil((double) MATRIX_DIMENSION/nprocs) * nprocs;
         padding= rows_alloc - MATRIX_DIMENSION;
     }
  
     rows_per_rank = rows_alloc / nprocs;
  
     if(rank==0){
+
         //imprimir informacion
         std::printf("Dimension: %d, rows_alloc: %d, rows_per_rank: %d, padding: %d\n",
                     MATRIX_DIMENSION,rows_alloc,rows_per_rank,padding);
@@ -50,6 +66,8 @@ int main(int argc, char** argv){
                 A[index] = i;
             }
         }
+
+
         for(int i=0; i<MATRIX_DIMENSION;i++) b[i]=1;
  
         //enviar la matriz A
@@ -58,6 +76,7 @@ int main(int argc, char** argv){
         MPI_Scatter(A.data(),rows_per_rank*MATRIX_DIMENSION,MPI_DOUBLE,
                     MPI_IN_PLACE,0,MPI_DOUBLE,
                     0,MPI_COMM_WORLD);
+        
         MPI_Bcast(b.data(),MATRIX_DIMENSION,MPI_DOUBLE,0,MPI_COMM_WORLD);
  
         //realizar el calculo: c=A7 x b

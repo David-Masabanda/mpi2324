@@ -46,7 +46,11 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "chrono": "cpp",
+        "ctime": "cpp",
+        "ratio": "cpp",
+        "fstream": "cpp"
     },
     "workbench.colorCustomizations": {
         "activityBar.activeBackground": "#8996a1",
